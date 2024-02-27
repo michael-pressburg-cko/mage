@@ -33,7 +33,9 @@ init_module!(|memgraph: &Memgraph| -> Result<()> {
 
     Ok(())
 });
-
+// This procedure takes a node label (of the desired composite node) & a list of nodes, and will either find the matching node wherein all nodes
+// share an edge (and only those nodes)
+// If we can turn it into a write_procedure, we could create the composite & return that too
 define_procedure!(upsert_composite, |memgraph: &Memgraph| -> Result<()> {
     let result = memgraph.result_record()?;
     let args = memgraph.args()?;
