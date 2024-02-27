@@ -39,7 +39,7 @@ define_procedure!(upsert_composite, |memgraph: &Memgraph| -> Result<()> {
     let args = memgraph.args()?;
     let composite_type = args.value_at(0)?; // c_str
     let passed_nodes = args.value_at(1)?; // list<vertex>
-    let mut matched_or_created_node : Result<Vertex>;
+    let mut matched_or_created_node: Option<Vertex> = None;
     if let Value::List(nodes) = passed_nodes {
         // Create a set of the names of all the nodes we want for quicker lookup
         let mut set = HashSet::new();
@@ -51,7 +51,7 @@ define_procedure!(upsert_composite, |memgraph: &Memgraph| -> Result<()> {
                     set.insert(prop.name);
                 }
             } else {
-                return Err(Error::UnableToFindVertexById)
+                return Err(Error::UnableToFindVertexById);
             }
         }
 
@@ -69,11 +69,11 @@ define_procedure!(upsert_composite, |memgraph: &Memgraph| -> Result<()> {
                                         in_set.insert(prop.name);
                                     }
                                 } else {
-                                    return Err(Error::UnableToReturnVertexPropertiesIterator)
+                                    return Err(Error::UnableToReturnVertexPropertiesIterator);
                                 }
                             }
                         } else {
-                            return Err(Error::UnableToReturnVertexInEdgesIterator)
+                            return Err(Error::UnableToReturnVertexInEdgesIterator);
                         }
 
                         // we are in the right node type, and we have build 2 sets.
@@ -83,14 +83,22 @@ define_procedure!(upsert_composite, |memgraph: &Memgraph| -> Result<()> {
 
                         if set.is_subset(&in_set) && set.is_superset(&in_set) {
                             // they match - write the node ID to the result record and return
+                            matched_or_created_node = Some(vertex);
                         }
                     }
                     in_set.clear();
                 }
             }
             // no matching node exists - create one that is a :COMPOSITE_OF all the passed nodes i, write the node ID to the result record and return
+            // ... but if we cant define a write_procedure, just return nothing
+            match matched_or_created_node {
+                Some(v) => {
+                    result.insert_vertex(c_str!("comp"), &v)?;
+                }
+                None => result.insert_null(c_str!("comp"))?,
+            }
         } else {
-            return Err(Error::UnableToMakeValueString)
+            return Err(Error::UnableToMakeValueString);
         }
     }
 
