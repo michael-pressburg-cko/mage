@@ -8,11 +8,8 @@ use rsmgp_sys::rsmgp::*;
 use rsmgp_sys::value::*;
 use rsmgp_sys::vertex::Vertex;
 use rsmgp_sys::{close_module, define_optional_type, define_procedure, define_type, init_module};
-use std::any::Any;
-use std::collections::HashMap;
 use std::collections::HashSet;
 use std::ffi::CString;
-use std::hash::Hash;
 use std::os::raw::c_int;
 use std::panic;
 
@@ -24,7 +21,9 @@ init_module!(|memgraph: &Memgraph| -> Result<()> {
         upsert_composite,
         c_str!("upsert_composite"),
         &[],
-        &[],
+        &[
+            define_optional_type!("strict", &MgpValue::make_bool(false, &memgraph)?, Type::Bool),
+        ],
         &[
             define_type!("compositeName", Type::String),
             define_type!("nodes", Type::List, Type::Vertex),
