@@ -1,8 +1,6 @@
 use c_str_macro::c_str;
-use rsmgp_sys::list::*;
 use rsmgp_sys::memgraph::*;
 use rsmgp_sys::mgp::*;
-use rsmgp_sys::property::*;
 use rsmgp_sys::result::*;
 use rsmgp_sys::rsmgp::*;
 use rsmgp_sys::value::*;
@@ -96,7 +94,7 @@ define_procedure!(upsert_composite, |memgraph: &Memgraph| -> Result<()> {
                 Some(v) => {
                     result.insert_vertex(c_str!("comp"), &v)?;
                 }
-                None => result.insert_null(c_str!("comp"))?,
+                None => {},
             }
         } else {
             return Err(Error::UnableToMakeValueString);
